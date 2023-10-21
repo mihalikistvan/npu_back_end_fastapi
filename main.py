@@ -1,0 +1,79 @@
+from typing import Union
+from fastapi import FastAPI, File, UploadFile, Form,Request,Body
+from pydantic import BaseModel
+from dotenv import find_dotenv, load_dotenv
+import shutil
+import random
+import string    
+from typing_extensions import Annotated
+from modules.mongo_db_access import mongoDB
+from modules.object_storage import s3_service
+
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+app = FastAPI()
+
+mongoDB_instance = mongoDB()
+s3 = s3_service()
+
+@app.get("/")
+def read_root():
+    return {"msg": "npu dev api v1"}
+
+@app.get("/bricks")
+def get_dict_of_bricks():
+    return mongoDB_instance.query_bricks()
+
+@app.get("/creations")
+def get_creations():
+    return mongoDB_instance.query_creations()
+
+@app.get("/creations/{creation_id}")
+def get_creation_by_id(creation_id:str):
+    return mongoDB_instance.query_one_creations(creation_id)
+
+@app.get("/creation_by_bricks/{brick_id}")
+def get_Creations_by_brick_id(brick_id: str):
+    return mongoDB_instance.query_bricks(brick_id)
+
+@app.get("/ratings/{creation_id}")
+def get_ratings_of_a_creation(creation_id:str):
+    return mongoDB_instance.query_creation_ratings(creation_id)
+
+@app.post("/ratings")
+async def add_rating_for_a_creation(creation_id:Annotated[str, Form()],
+              uniqueness: Annotated[int, Form()],
+              creativity: Annotated[int, Form()],
+              rated_by: Annotated[str, Form()]):
+    return mongoDB_instance.upload_creation_rating(creation_id,uniqueness,creativity,rated_by)
+
+
+@app.post("/upload")
+async def upload_new_creation(creation_name: Annotated[str, Form()],
+                 user_email: Annotated[str, Form()],
+                 bricks: Annotated[list, Form()],
+                 file: UploadFile = File(...)):
+
+    try:    
+        generated_filename = ''.join(random.choice(string.ascii_letters) for _ in range(32))+'.'+file.filename.split('.')[-1]
+        generated_id =creation_name +''.join(random.choice(string.ascii_letters) for _ in range(12))
+        with open('static/'+generated_filename, 'wb') as f:
+            
+            mongoDB_instance.upload_file_metadata(creation_name=creation_name,
+                                                  creation_id=generated_id,
+                                                  user_email=user_email,
+                                                  bricks=bricks,
+                                                  generated_file_name=generated_filename)
+
+            shutil.copyfileobj(file.file, f)
+            s3.upload_file(generated_filename=generated_filename)
+                
+    except Exception as e:
+        print (e)
+        return {"message": "There was an error uploading the file"}
+    finally:
+        file.file.close()
+    
+    return {"message": f"Successfully uploaded {file.filename}"}
+
