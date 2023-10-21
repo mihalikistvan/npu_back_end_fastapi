@@ -59,3 +59,7 @@ class mongoDB():
         }
         self.col_creations.insert_one(metadata)
         return 'Successful upload'
+    
+    def delete_creation(self,creation_id):
+        self.col_creations.delete_one({"creation_id":creation_id})
+        self.col_ratings.delete_manye({"creation_id":creation_id})

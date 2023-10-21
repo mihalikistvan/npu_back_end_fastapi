@@ -89,3 +89,9 @@ async def upload_new_creation(creation_name: Annotated[str, Form()],
     
     return {"message": f"Successfully uploaded {file.filename}"}
 
+@app.delete("/creations/{creation_id}",dependencies=[Depends(api_key_auth)])
+async def delete_creation(creation_id:str):
+    mongoDB_instance.remove_creation(creation_id=creation_id)
+    return {"message": f"Successfully removed creation"}
+
+
