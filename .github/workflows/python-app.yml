@@ -38,9 +38,5 @@ jobs:
           pytest
       - name: sast-scan
         uses: AppThreat/sast-scan-action@1.0.2
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
+      - name: Pip audit
+        uses: pypa/gh-action-pip-audit@v1.0.8
