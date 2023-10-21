@@ -8,7 +8,7 @@ FastApi backend for npu.
 pip install -r requirements.txt
 ```
 
-###Then: Run server
+### Then: Run server
 
 ```
 uvicorn app.main:app --reload
