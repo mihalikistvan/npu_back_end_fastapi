@@ -1,8 +1,7 @@
 import certifi
 import os
 from pymongo.mongo_client import MongoClient
-from bson.json_util import dumps
-from bson.json_util import loads
+from bson.json_util import dumps,loads
 
 
 class mongoDB():
