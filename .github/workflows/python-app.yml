@@ -37,3 +37,19 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+
+name: Github SAST
+on: push
+  sast_job:
+    runs-on: ubuntu-latest
+    name: SAST Validator
+    steps:
+      - name: Checkout repository content
+        uses: actions/checkout@v2 
+
+      - name: SAST validator
+        uses: michelleamesquita/sast-validator@v40
+        with:
+          options: -v $PWD/:/app
+          path: .
+          language: python
