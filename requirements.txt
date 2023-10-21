@@ -6,3 +6,5 @@ certifi
 python-dotenv>=0.19.2
 python-multipart
 bson
+flake8
+pytest
