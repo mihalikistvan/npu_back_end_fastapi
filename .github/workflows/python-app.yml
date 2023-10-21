@@ -39,7 +39,13 @@ jobs:
         pytest
 
 name: Github SAST
-on: push
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    
+jobs:
   sast_job:
     runs-on: ubuntu-latest
     name: SAST Validator
