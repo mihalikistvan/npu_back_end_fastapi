@@ -52,11 +52,18 @@ class mongoDB():
             return 'Successful rating.'
         return 'User allready rated this creation.'
 
-    def upload_file_metadata(self, creation_name, creation_id, user_email, bricks, generated_file_name):
+    def upload_file_metadata(self,
+                             creation_name, 
+                             creation_id, 
+                             user_email, 
+                             description,
+                             bricks, 
+                             generated_file_name):
         metadata = {
             'creation_name': creation_name,
             'creation_id': creation_id,
             'user_email': user_email,
+            'description': description,
             'bricks': bricks,
             'file_url': f"{os.getenv('s3_url')}{generated_file_name}"
         }
