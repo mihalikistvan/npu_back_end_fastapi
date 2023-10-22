@@ -70,6 +70,7 @@ async def add_rating_for_a_creation(creation_id: Annotated[str, Form()],
 async def upload_new_creation(creation_name: Annotated[str, Form()],
                               user_email: Annotated[str, Form()],
                               bricks: Annotated[list, Form()],
+                              description: Annotated[str, Form()],
                               file: UploadFile = File(...)):
 
     try:
@@ -82,6 +83,7 @@ async def upload_new_creation(creation_name: Annotated[str, Form()],
             mongoDB_instance.upload_file_metadata(creation_name=creation_name,
                                                   creation_id=generated_id,
                                                   user_email=user_email,
+                                                  description=description,
                                                   bricks=bricks,
                                                   generated_file_name=generated_filename)
 
