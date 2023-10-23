@@ -48,9 +48,9 @@ def get_creation_by_id(creation_id: str):
     return mongoDB_instance.query_one_creations(creation_id)
 
 
-@app.get("/creation_by_bricks/{brick_id}")
-def get_creations_by_brick_id(brick_id: str):
-    return mongoDB_instance.query_bricks(brick_id)
+@app.get("/creation_by_bricks/{brick_name}")
+def get_creations_by_brick_id(brick_name: str):
+    return mongoDB_instance.query_creations_by_brick_name(brick_name)
 
 
 @app.get("/ratings/{creation_id}")
@@ -58,8 +58,8 @@ def get_ratings_of_a_creation(creation_id: str):
     return mongoDB_instance.query_creation_ratings(creation_id)
 
 
-@app.post("/ratings", dependencies=[Depends(api_key_auth)])
-async def add_rating_for_a_creation(creation_id: Annotated[str, Form()],
+@app.post("/ratings/{creation_id}", dependencies=[Depends(api_key_auth)])
+async def add_rating_for_a_creation(creation_id:str,
                                     uniqueness: Annotated[int, Form()],
                                     creativity: Annotated[int, Form()],
                                     rated_by: Annotated[str, Form()]):
@@ -76,7 +76,7 @@ async def upload_new_creation(creation_name: Annotated[str, Form()],
     try:
         generated_filename = ''.join(random.choice(
             string.ascii_letters) for _ in range(32))+'.'+file.filename.split('.')[-1]
-        generated_id = creation_name + \
+        generated_id = user_email + \
             ''.join(random.choice(string.ascii_letters) for _ in range(12))
         with open('static/'+generated_filename, 'wb') as f:
 
@@ -89,14 +89,12 @@ async def upload_new_creation(creation_name: Annotated[str, Form()],
 
             shutil.copyfileobj(file.file, f)
             s3.upload_file(generated_filename=generated_filename)
-
+            file.file.close()
     except Exception as e:
         print(e)
         return {"message": "There was an error uploading the file"}
-    finally:
-        file.file.close()
 
-    return {"message": f"Successfully uploaded {file.filename}"}
+    return {"message": f"Successfully uploaded"}
 
 
 @app.delete("/creations/{creation_id}", dependencies=[Depends(api_key_auth)])
