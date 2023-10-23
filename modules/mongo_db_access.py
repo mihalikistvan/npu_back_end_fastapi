@@ -1,8 +1,9 @@
 import certifi
 import os
+import pymongo
 from pymongo.mongo_client import MongoClient
 from bson.json_util import dumps,loads
-
+from  datetime import datetime
 
 class mongoDB():
     def __init__(self):
@@ -26,7 +27,17 @@ class mongoDB():
 
     def query_creations(self):
         creations = list(self.col_creations.find(
-            {"creation_name": {"$exists": True}}, {'_id': 0}))
+            {"creation_name": {"$exists": True}}, {'_id': 0}).sort("creation_date",pymongo.DESCENDING))
+        return loads(dumps(creations))
+
+    def query_creations_by_brick_name(self,brick_name):
+        print (1)
+        creations = list(self.col_creations.find(
+            {"$and":[
+                {"creation_name": {"$exists": True}},
+                {"bricks": {"$regex": brick_name, "$options": "i"} }
+            ]}, {'_id': 0}).sort("creation_date",pymongo.DESCENDING))
+        print (2)
         return loads(dumps(creations))
 
     def query_one_creations(self, creation_id):
@@ -35,9 +46,21 @@ class mongoDB():
         return creations
 
     def query_creation_ratings(self, creation_id):
+    
         ratings = list(self.col_ratings.find(
             {"creation_id": creation_id}, {'_id': 0}))
-        return loads(dumps(ratings))
+        
+        data={'uniqueness':[],'creativity':[]}
+        for rating in ratings:
+            data['uniqueness'].append(rating['uniqueness'])
+            data['creativity'].append(rating['creativity'])
+        if len(data['uniqueness'])>0:
+            data['uniqueness'] =sum(data['uniqueness'])/len(data['uniqueness']) 
+            data['creativity'] =sum(data['creativity'])/len(data['creativity']) 
+        else:
+            data['uniqueness'] ="No data yet"
+            data['creativity'] ="No data yet"
+        return data
 
     def upload_creation_rating(self, creation_id, uniqueness, creativity, rated_by):
 
@@ -48,6 +71,7 @@ class mongoDB():
                 'creativity': creativity,
                 'rated_by': rated_by,
             }
+            print (new_rating)
             self.col_ratings.insert_one(new_rating)
             return 'Successful rating.'
         return 'User allready rated this creation.'
@@ -59,8 +83,10 @@ class mongoDB():
                              description,
                              bricks, 
                              generated_file_name):
+        
         metadata = {
             'creation_name': creation_name,
+            'creation_date':datetime.now().strftime('%Y-%m-%d %H:%M'),
             'creation_id': creation_id,
             'user_email': user_email,
             'description': description,
