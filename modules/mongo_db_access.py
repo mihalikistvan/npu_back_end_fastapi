@@ -31,11 +31,13 @@ class mongoDB():
         return loads(dumps(creations))
 
     def query_creations_by_brick_name(self,brick_name):
+        print (1)
         creations = list(self.col_creations.find(
             {"$and":[
                 {"creation_name": {"$exists": True}},
-                {"bricks": {"$in":[brick_name]}}
+                {"bricks": {"$regex": brick_name, "$options": "i"} }
             ]}, {'_id': 0}).sort("creation_date",pymongo.DESCENDING))
+        print (2)
         return loads(dumps(creations))
 
     def query_one_creations(self, creation_id):
